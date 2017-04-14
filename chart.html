@@ -1,0 +1,129 @@
+  <html>
+  <head>
+    <script type="text/javascript" src="https://ajax.googleapis.com/ajax/libs/jquery/1.11.1/jquery.min.js"></script>
+    <script type="text/javascript" src="https://www.gstatic.com/charts/loader.js"></script>
+    <script type="text/javascript">
+      /**======================================================== SSI-STREAMING ,USDCAD,GBPUSD,AUDUSD,NZDUSD,XAUUSD,GBPJPY,SPX500,USOil,UKOIL,GER30,USDJPY**/
+
+        function startWS() {
+            var wsUri = 'wss://streamssi.fxcorporate.com/streamssi/endpoint/EURUSD';
+            try {
+                var websocket = new WebSocket(wsUri);
+
+                websocket.onopen = function (evt) {
+                    onOpenWS(evt);
+                };
+                websocket.onmessage = function (evt) {
+                    onMessageWS(evt);
+                };
+                websocket.onerror = function (evt) {
+                    onErrorWS(evt);
+                };
+            } catch (I) {
+                console.log(I);
+            }
+        }
+
+        function onOpenWS(evt) {
+            //alert("Connected to " + evt);
+        }
+
+        function onMessageWS(evt) {
+
+            try {
+                if (typeof (evt) === 'object') {
+
+                    var json = '' + evt.data;
+                    //console.log(evt.data);
+                    json = json.replace('ssi', '');
+                    //console.log(json);
+                    var objJSON = eval(json);
+                    $.each(objJSON.SSI, function (index, event) {
+                        try {
+                            var noSlashSymb = event.Symbol.replace('/', '').toUpperCase();
+                            var pres = 10000;
+                            var totalOrders = parseInt(event.LongAmountKOrders, 10) + parseInt(event.ShortAmountKOrders, 10);
+                            var longPercent = parseInt(event.LongAmountKOrders) * 100 / totalOrders;
+                            var longPercent = parseInt(longPercent.toFixed(0));
+
+                            var longSSI = parseInt(event.LongAmountKOrders);
+                            var shortSSI = parseInt(event.ShortAmountKOrders);
+
+                            var shortPercent = 100.00 - longPercent;
+                            var histOrders = Math.round(event.SSIHistOrders * pres) / pres;
+                            var s = padZeroWS(histOrders);
+                            $("#ssi-present-" + noSlashSymb).html(s);
+                            $("#ssi-present-" + noSlashSymb + 0).html(s);
+                            $("#ssi-present-" + noSlashSymb + 1).html(s);
+                            $("#ssi-long-prc-" + noSlashSymb).html(longPercent + "%");
+                            $("#ssi-long-prc-" + noSlashSymb + 0).html(longPercent + "%").css("width", longPercent + "%");
+                            $("#ssi-long-prc-" + noSlashSymb + 1).html(longPercent + "%");
+                            $("#ssi-short-prc-" + noSlashSymb).html(shortPercent + "%");
+                            $("#ssi-short-prc-" + noSlashSymb + 0).html(shortPercent + "%").css("width", shortPercent + "%");
+                            $("#ssi-short-prc-" + noSlashSymb + 1).html(shortPercent + "%");
+                            $(".long-knob-" + noSlashSymb).val(longPercent).trigger('change');
+                            $(".short-knob-" + noSlashSymb).val(shortPercent).trigger('change');
+                            //console.log(noSlashSymb);
+
+                            var arr = [noSlashSymb, longSSI, shortSSI];  //output 1 array at a time
+                            //console.log(arr);
+
+                            google.charts.load('current', {'packages':['corechart']});
+                            google.charts.setOnLoadCallback(drawChart);
+
+                            function drawChart() {
+
+                              var data = google.visualization.arrayToDataTable([
+                                ['Year', 'Long Amount Orders', 'Short Amount Orders'],
+                                arr,
+                                arr,
+                                arr,
+                                arr,
+                                arr
+
+                              ]);
+
+                              var options = {
+                                title: 'SSI EURUSD',
+                                curveType: 'function',
+                                legend: { position: 'bottom' }
+                              };
+
+                              var chart = new google.visualization.LineChart(document.getElementById('curve_chart'));
+
+                              chart.draw(data, options);
+                            }
+                            setTimeout(drawChart, 100);
+                        } catch (I) {
+                        }
+                    });
+                } else {
+                    $("#output").html("<br>Server error. Check back soon.");
+                }
+            } catch (I) {
+                $("#output").html("<br>No featured events are scheduled at this time. Check back soon.");
+                console.log("Technical error: " + I);
+            }
+        }
+
+        function onErrorWS(evt) {
+            console.log('ssi streaming ERROR: ' + evt);
+        }
+
+        function padZeroWS(histOrders) {
+            var s = Math.abs(histOrders) + "0000";
+            var i = s.indexOf('.');
+            var m = histOrders < 0 ? '-' : '';
+            return m + s.substr(0, i) + s.substr(i, i + 4);
+        }
+
+
+    </script>
+  </head>
+  <body>
+    <div id="curve_chart" style="width: 900px; height: 500px"></div>
+    <script>
+        startWS()
+    </script>
+  </body>
+</html>
