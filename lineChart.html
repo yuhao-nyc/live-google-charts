@@ -1,224 +1,280 @@
 <html>
 <head>
-<title>Uber Simple Websockets</title>
+<title></title>
 
-<!-- might get rid of JQuery -->
 <script type="text/javascript" src="https://ajax.googleapis.com/ajax/libs/jquery/1.11.1/jquery.min.js"></script>
-<!-- Google Chart -->
 <script type="text/javascript" src="https://www.google.com/jsapi"></script>
-<!-- Websocket -->
+
 <script type="text/javascript">
-
-// Config
-var host = "wss://streamssi.fxcorporate.com/streamssi/endpoint/EURUSD"; // No need to change this if using localhost
-
-
-//Declare Variables
+var portal = "wss://streamssi.fxcorporate.com/streamssi/endpoint/EURUSD,USDCAD"; // wss://streamssi.fxcorporate.com/streamssi/endpoint/EURUSD,USDCAD,GBPUSD,AUDUSD,NZDUSD,XAUUSD,GBPJPY,SPX500,USOil,UKOIL,GER30,USDJPY
 var socket;
-//var explodedValues = [0,0,0,0]; //initial value for the plot = 0
 var valueArr = [];
 var timeArr = [];
+var arr_usdcad = [];
+var arr_eurusd = [];
 
 function init() {
 	try {
-		socket = new WebSocket(host);
-		console.log('WebSocket status '+socket.readyState);
+		socket = new WebSocket(portal);
+		//console.log('WebSocket status '+socket.readyState);
 		socket.onopen = function(msg) {
-							   console.log("Welcome - status "+this.readyState);
-						   };
+		    //console.log("Welcome - status "+this.readyState);
+		};
+
 		socket.onmessage = function(msg) {
 
-							   //console.log("Message Received: "+msg.data);
-                               var json = '' + msg.data;
-                                //console.log(evt.data);
-                                json = json.replace('ssi', '');
-                                //console.log(json);
-                                var objJSON = eval(json);
+            var json = '' + msg.data;
+            json = json.replace('ssi', '');
+            //console.log(json);
+            var objJSON = eval(json);
 
-                    $.each(objJSON.SSI, function (index, event) {
+            $.each(objJSON.SSI, function (index, event) {
 
-                            var noSlashSymb = event.Symbol.replace('/', '').toUpperCase();
-                            var pres = 10000;
-                            var totalOrders = parseInt(event.LongAmountKOrders, 10) + parseInt(event.ShortAmountKOrders, 10);
-                            var longPercent = parseInt(event.LongAmountKOrders) * 100 / totalOrders;
-                            var longPercent = parseInt(longPercent.toFixed(0));
+                    var noSlashSymb = event.Symbol.replace('/', '').toUpperCase();
+                    var pres = 10000;
+                    var totalOrders = parseInt(event.LongAmountKOrders, 10) + parseInt(event.ShortAmountKOrders, 10);
+                    var longPercent = parseInt(event.LongAmountKOrders) * 100 / totalOrders;
+                    //var longPercent = parseInt(longPercent.toFixed(0));
 
-                            var longSSI = parseInt(event.LongAmountKOrders);
-                            var shortSSI = parseInt(event.ShortAmountKOrders);
-                            var timeUpdate = event.Time;
-                            var timeUpdateHour = timeUpdate.slice(11, 19);
+                    var longSSI = parseInt(event.LongAmountKOrders);
+                    var shortSSI = parseInt(event.ShortAmountKOrders);
+                    var timeUpdate = event.Time;
+                    var timeUpdateHour = timeUpdate.slice(11, 19);
 
 
-                            var shortPercent = 100.00 - longPercent;
-                            var histOrders = Math.round(event.SSIHistOrders * pres) / pres;
-                            var s = padZeroWS(histOrders);
-                            $("#ssi-present-" + noSlashSymb).html(s);
-                            $("#ssi-present-" + noSlashSymb + 0).html(s);
-                            $("#ssi-present-" + noSlashSymb + 1).html(s);
-                            $("#ssi-long-prc-" + noSlashSymb).html(longPercent + "%");
-                            $("#ssi-long-prc-" + noSlashSymb + 0).html(longPercent + "%").css("width", longPercent + "%");
-                            $("#ssi-long-prc-" + noSlashSymb + 1).html(longPercent + "%");
-                            $("#ssi-short-prc-" + noSlashSymb).html(shortPercent + "%");
-                            $("#ssi-short-prc-" + noSlashSymb + 0).html(shortPercent + "%").css("width", shortPercent + "%");
-                            $("#ssi-short-prc-" + noSlashSymb + 1).html(shortPercent + "%");
-                            $(".long-knob-" + noSlashSymb).val(longPercent).trigger('change');
-                            $(".short-knob-" + noSlashSymb).val(shortPercent).trigger('change');
-                            //console.log(noSlashSymb);
+                    var shortPercent = 100.00 - longPercent;
+                    var histOrders = Math.round(event.SSIHistOrders * pres) / pres;
+                    var s = padZeroWS(histOrders);
+                    /*$("#ssi-present-" + noSlashSymb).html(s);
+                    $("#ssi-present-" + noSlashSymb + 0).html(s);
+                    $("#ssi-present-" + noSlashSymb + 1).html(s);
+                    $("#ssi-long-prc-" + noSlashSymb).html(longPercent + "%");
+                    $("#ssi-long-prc-" + noSlashSymb + 0).html(longPercent + "%").css("width", longPercent + "%");
+                    $("#ssi-long-prc-" + noSlashSymb + 1).html(longPercent + "%");
+                    $("#ssi-short-prc-" + noSlashSymb).html(shortPercent + "%");
+                    $("#ssi-short-prc-" + noSlashSymb + 0).html(shortPercent + "%").css("width", shortPercent + "%");
+                    $("#ssi-short-prc-" + noSlashSymb + 1).html(shortPercent + "%");
+                    $(".long-knob-" + noSlashSymb).val(longPercent).trigger('change');
+                    $(".short-knob-" + noSlashSymb).val(shortPercent).trigger('change');*/
+                    //console.log(noSlashSymb);
 
-                            //explodedValues = s;  //can be access for outter function
-                            //console.log(explodedValues);
-                            var floatVal = parseFloat(s);
+                    //explodedValues = s;  //can be access for outter function
+                    //console.log(explodedValues);
+                    var floatVal = parseFloat(s);
 
-                            //var type = typeof(floatVal);
+                    //var testArr = [];
+                    //testArr.push(floatVal);
 
-                            //console.log(type);
+                    //var ssiArr = testArr.cotact(floatVal);
 
+                    //console.log(testArr);
+                    //var type = typeof(floatVal);
 
-                            valueArr.push(floatVal);
-                            timeArr.push(timeUpdateHour);
+                    //console.log(type);
 
-                            //console.log(timeArr);
-
-                            /*var dataRow = ['SSI', floatVal];
-                            var rowArr = [];
-                            rowArr.push(dataRow);*/
-
-   /*                         //console.log(valueArr);
-                            var rand = parseInt(Math.random()*10);
-                            //console.log(rowArr);
-                            var testArr = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10];
-                            var num;
-
-                            for(var i=0; i<valueArr.length; i++) {
-                              //console.log(valueArr[i]);
-                              //console.log(valueArr[0]);
-                              //num = i;
-                              //console.log(valueArr[i]);
-                            }
-                            //console.log(floatVal);*/
-
-                              function drawVisualization() {
-                              // Create and populate the data table from the values received via websocket
-                              var data = new google.visualization.DataTable();
-                              data.addColumn('string', 'Historical SSI');
-                              data.addColumn('number', 'SSI');
-
-                              for(var i=0; i<valueArr.length; i++) {
-                                //console.log(valueArr[i]);
-                                //console.log(valueArr[0]);
-                                //num = i;
-                                //console.log(valueArr[i]);
-                                data.addRow([timeArr[i], valueArr[i]]);
-                                //console.log(timeArr[0]);
-
-                                if(i>60) {
-                                  data.removeRow(0);
-                                  //console.log('max out!!!');
-                                }
-
-
-                              }
-
-                              //setTimeout(data.removeRow(0), 100);
-                              //TODO remove the previous added rows
-                              //look for the firstly added 5/10 rows
-                              //removeRow of index
-                              for(var i=0; i<valueArr.length; i++) {
-                                //console.log(valueArr[i]);
-                                //console.log(valueArr[0]);
-                                //num = i;
-                                //console.log(valueArr[i]);
-                                //setTimeout(data.removeRow(0), 1000);
-                                //data.removeRow(i-1);
-                                //TODO remove the previous added rows
-                                //data.removeRow([timeArr[0], valueArr[0]])
-                              }
-
-
-                              //console.log(valueArr[1]);
-                              //setInterval(data.addRow(['SSI', 1.25]), 1000);
-                              //setInterval(data.addRow(['SSI', 0.9]), 1000);
-                              //setInterval(data.addRow(['SSI', 1.33]), 10);
-
-                             //var x = 69;
-
-
-                              // use a DataView to 0-out all the values in the data set for the initial draw
-                              var view = new google.visualization.DataView(data);
-                              view.setColumns([0, {
-                                  type: 'number',
-                                  label: data.getColumnLabel(1),
-                                  calc: function () {return 0;}
-                              }]);
-
-                              // Create and draw the plot
-                              var chart = new google.visualization.LineChart(document.getElementById('visualization'));
-
-                              var options = {
-                                  title:" ",
-                                  width: 1440,
-                                  height: 700,
-                                  bar: { groupWidth: "40%" },
-                                  legend: { position: "bottom" },
-                                  animation: {"startup": true},
-                                  curveType: 'function',
-                                  lineWidth: 3
-                                  /*vAxis: {
-                                      // set these values to make the initial animation smoother
-                                      minValue: 1.3,
-                                      maxValue: 1.4
-                                  }*/
-                              };
+                    //console.log(floatVal);
+                    valueArr.push(floatVal);
+                    timeArr.push(timeUpdateHour);
+                    //console.log(valueArr)
 
 
 
+                    //console.log(arr1);
+                    /*var dataRow = ['SSI', floatVal];
+                    var rowArr = [];
+                    rowArr.push(dataRow);*/
 
-    var runOnce = google.visualization.events.addListener(chart, 'ready', function () {
-        google.visualization.events.removeListener(runOnce);
-        chart.draw(data, options);
-    });
+/*                         //console.log(valueArr);
+                    var rand = parseInt(Math.random()*10);
+                    //console.log(rowArr);
+                    var testArr = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10];
+                    var num;
 
-    setInterval(chart.draw(view, options), 1000);
-    clearInterval();
-
-    // you can handle the resizing here - no need to recreate your data and charts from scratch
-    $(window).resize(function() {
-        chart.draw(data, options);
-    });
-
-}
-
-
-
-google.load('visualization', '1', {packages: ['corechart'], callback: drawVisualization});
-google.setOnLoadCallback(drawVisualization);
-                            //console.log(valueArr)
-
-                            //drawVisualization();
-                            //console.log(explodedValues);
-
-                    });
-
-
-							//console.log("Separate Values: "+explodedValues);
-
-							//convert strings to numbers
+                    for(var i=0; i<valueArr.length; i++) {
+                      //console.log(valueArr[i]);
                       //console.log(valueArr[0]);
-                      //console.log(typeof(valueArr[0]));
+                      //num = i;
+                      //console.log(valueArr[i]);
+                    }
+                    //console.log(floatVal);*/
+
+                      function drawVisualization() {
+                      // Create and populate the data table from the values received via websocket
+                      var data = new google.visualization.DataTable();
+                      data.addColumn('string', 'Historical SSI');
+                      data.addColumn('number', 'EUR/USD SSI');
+
+
+                      var data_test = new google.visualization.DataTable();
+                      data_test.addColumn('string', 'Historical SSI TEST');
+                      data_test.addColumn('number', 'USD/CAD SSI');
+
+
+                      for(var i=0; i<valueArr.length; i+=2) {
+                        //console.log(valueArr[i]);
+                        //console.log(valueArr[0]);
+                        //num = i;
+                        //console.log(valueArr[i]);
+                        //data.addRow([timeArr[i], valueArr[i]]);
+                        //arr_eurusd.push(valueArr[i]);
+                        data.addRow([timeArr[i], valueArr[i]]);
+                        //console.log(timeArr[0]);
+
+                        if(i>120) {
+                          data.removeRow(0);
+                          //console.log('max out!!!');
+                        }
+
+                        $('#ssi_values_eurusd').html(valueArr[i]);
+                      }
+
+                      for(var i=1; i<valueArr.length; i+=2) {
+                        //console.log(valueArr[i]);
+                        //console.log(valueArr[0]);
+                        //num = i;
+                        //console.log(valueArr[i]);
+                        //data.addRow([timeArr[i], valueArr[i]]);
+                        //arr_eurusd.push(valueArr[i]);
+                        data_test.addRow([timeArr[i], valueArr[i]]);
+                        //console.log(timeArr[0]);
+
+                        if(i>120) {
+                          data_test.removeRow(0);
+                          //console.log('max out!!!');
+                        }
+
+                        $('#ssi_values_usdaud').html(valueArr[i]);
+                      }
+                      //console.log(arr_eurusd);
+
+
+                      //the even index of array
+                      for (var i=1;i<valueArr.length;i+=2) {
+                         //console.log(valueArr[i]);
+                         //console.log(i);
+                         arr_usdcad.push(valueArr[i]);
+                         //console.log(arr_usdcad);
+                         //data.addRow([timeArr[i], arr_usdcad[i]]);
+                      }
+                      //console.log(arr_usdcad);
 
 
 
-                                    function padZeroWS(histOrders) {
+
+
+
+                      //setTimeout(data.removeRow(0), 100);
+                      //TODO remove the previous added rows
+                      //look for the firstly added 5/10 rows
+                      //removeRow of index
+                      for(var i=0; i<valueArr.length; i++) {
+                        //console.log(valueArr[i]);
+                        //console.log(valueArr[0]);
+                        //num = i;
+                        //console.log(valueArr[i]);
+                        //setTimeout(data.removeRow(0), 1000);
+                        //data.removeRow(i-1);
+                        //TODO remove the previous added rows
+                        //data.removeRow([timeArr[0], valueArr[0]])
+                      }
+
+
+                      //console.log(valueArr[1]);
+                      //setInterval(data.addRow(['SSI', 1.25]), 1000);
+                      //setInterval(data.addRow(['SSI', 0.9]), 1000);
+                      //setInterval(data.addRow(['SSI', 1.33]), 10);
+
+                     //var x = 69;
+
+
+                      // use a DataView to 0-out all the values in the data set for the initial draw
+                      var view = new google.visualization.DataView(data);
+                      var view_test = new google.visualization.DataView(data_test);
+                      /*view.setColumns([0, {
+                          type: 'number',
+                          label: data.getColumnLabel(1),
+                          calc: function () {return 0;}
+                      }]);*/
+
+                      // Create and draw the plot
+                      var chart = new google.visualization.LineChart(document.getElementById('visualization'));
+                      var chart_test = new google.visualization.LineChart(document.getElementById('visualization_test'));
+
+                      var options = {
+                          title:" ",
+                          width: 600,
+                          height: 400,
+                          bar: { groupWidth: "40%" },
+                          legend: { position: "bottom" },
+                          animation: {"startup": true},
+                          curveType: 'function',
+                          lineWidth: 3,
+                          backgroundColor: '#f9f9f9',
+                          colors: ['red'],
+                          tooltip: {
+                              textStyle: {
+                                color: 'red',
+                                italic: true
+                              },
+                              showColorCode: true
+                          },
+                          animation: {
+                              startup: true,
+                              easing: 'inAndOut',
+                              //duration: 500
+                          },
+                          vAxis: {
+                              title: '',
+                              gridlines: {
+                                count: 8,
+                                color: '#999'
+                              }
+                              /*minValue: 1.3,
+                              maxValue: 1.4*/
+                          },
+                          hAxis: {
+                            title: 'Time Stamp'
+                          },
+                      };
+
+                      var runOnce = google.visualization.events.addListener(chart, 'ready', function () {
+                          google.visualization.events.removeListener(runOnce);
+                          chart.draw(data, options);
+                          chart_test.draw(data_test, options);
+                      });
+
+                      chart.draw(view, options);
+                      chart_test.draw(view_test, options);
+
+                      // you can handle the resizing here - no need to recreate your data and charts from scratch
+                      $(window).resize(function() {
+                          chart.draw(data, options);
+                          chart_test.draw(data_test, options);
+                      });
+
+                }
+                google.load('visualization', '1', {packages: ['corechart'], callback: drawVisualization});
+                google.setOnLoadCallback(drawVisualization);
+
+                //delay to prevent browser freeze
+                /*setTimeout(function() {
+
+                }, 500)*/
+
+        });
+
+        function padZeroWS(histOrders) {
             var s = Math.abs(histOrders) + "0000";
             var i = s.indexOf('.');
             var m = histOrders < 0 ? '-' : '';
             return m + s.substr(0, i) + s.substr(i, i + 4);
         }
 
-						   };
-		socket.onclose   = function(msg) {
-							   console.log("Disconnected - status "+this.readyState);
-						   };
+    };
+
+        socket.onclose = function(msg) {
+            console.log("Disconnected - status "+this.readyState);
+        };
 	}
 	catch(ex){
 		console.log(ex);
@@ -226,33 +282,33 @@ google.setOnLoadCallback(drawVisualization);
 
 }
 
+//setInterval(function(){init()}, 1000);
+
 function quit() {
 	if (socket != null) {
-		console.log("Close Socket");
+		console.log("Web Socket closed");
 		socket.close();
 		socket=null;
 	}
 }
 
 function reconnect() {
-	quit();
+	//quit();
 	init();
 }
-</script>
-
-
-
-
-<script type="text/javascript">
-
 </script>
 
 </head>
 <body onload="init()">
 
-<div id="visualization"></div>
+    <div id="visualization"></div>
+    <h3 id="ssi_values_eurusd"></h3>     <br><br><br>
 
-<!--<button onclick="reconnect()">Reconnect</button>    -->
+
+    <div id="visualization_test"></div>
+    <h3 id="ssi_values_usdaud"></h3>
+    <button onClick="quit()">Pause</button>
+    <button onclick="reconnect()">Reconnect</button>
 
 </body>
 </html>
