@@ -10,10 +10,14 @@ var portal = "wss://streamssi.fxcorporate.com/streamssi/endpoint/EURUSD,USDCAD";
 var socket;
 var valueArr = [];
 var timeArr = [];
-var arr_usdcad = [];
 var arr_eurusd = [];
+var arr_usdcad = [];
+
 
 function init() {
+
+
+
 	try {
 		socket = new WebSocket(portal);
 		//console.log('WebSocket status '+socket.readyState);
@@ -74,9 +78,9 @@ function init() {
 
                     //console.log(floatVal);
                     valueArr.push(floatVal);
-                    timeArr.push(timeUpdateHour);
-                    //console.log(valueArr)
 
+                    timeArr.push(timeUpdateHour);
+                    //console.log(valueArr);
 
 
                     //console.log(arr1);
@@ -117,13 +121,36 @@ function init() {
                         //console.log(valueArr[i]);
                         //data.addRow([timeArr[i], valueArr[i]]);
                         //arr_eurusd.push(valueArr[i]);
-                        data.addRow([timeArr[i], valueArr[i]]);
+                        /*if(i>60) {
+                          data.removeRow(0);
+                          valueArr.splice(0, 2);
+                          timeArr.splice(0, 2);
+                          var popped = valueArr.splice(0, 2);
+                          console.log('1popped: '+popped);
+                          //console.log('eurusd max out!!!');
+                        }*/
+                        /*var pops = valueArr.splice(0, 1);
+                        console.log(pops);*/
+
                         //console.log(timeArr[0]);
 
-                        if(i>120) {
+                        if(i<30) {
+                          data.addRow([timeArr[i], valueArr[i]]);
+                        } else if (i>=30) {
                           data.removeRow(0);
+                          valueArr.splice(0, 2);
+                          timeArr.splice(0, 2);
+                          /*setTimeout(function(){
+
+                             //console.log('dump data 1');
+                          }, 500);*/
+                          /*var popped = valueArr.splice(0, 2);
+                          console.log('2popped: '+popped);
+                          console.log('after: '+valueArr);*/
                           //console.log('max out!!!');
+                          data.addRow([timeArr[i], valueArr[i]]);
                         }
+
 
                         $('#ssi_values_eurusd').html(valueArr[i]);
                       }
@@ -135,39 +162,60 @@ function init() {
                         //console.log(valueArr[i]);
                         //data.addRow([timeArr[i], valueArr[i]]);
                         //arr_eurusd.push(valueArr[i]);
-                        data_test.addRow([timeArr[i], valueArr[i]]);
+                        if(i<30) {
+                          data_test.addRow([timeArr[i], valueArr[i]]);
+                        } else if (i>=30) {
+                          data_test.removeRow(0);
+
+                          valueArr.splice(0, 2);
+                          timeArr.splice(0, 2);
+                          /*setTimeout(function(){
+
+                             console.log('dump data 2');
+                          }, 500);*/
+                          /*console.log(valueArr[0]);
+                          console.log(valueArr);*/
+
+                          /*var popped = valueArr.splice(0, 2);
+                          console.log('2popped: '+popped);
+                          console.log('after: '+valueArr);*/
+                          //console.log('max out!!!');
+                          data_test.addRow([timeArr[i], valueArr[i]]);
+                        }
+                        //console.log('next: '+valueArr);
+
                         //console.log(timeArr[0]);
 
-                        if(i>120) {
-                          data_test.removeRow(0);
-                          //console.log('max out!!!');
-                        }
 
-                        $('#ssi_values_usdaud').html(valueArr[i]);
+
+                        $('#ssi_values_usdcad').html(valueArr[i]);
                       }
+
+                     /* for (var i = 0; i<timeArr.length; i++) {
+
+                        if (i>120) {
+                           valueArr.splice(0, 2);
+                        }
+                      }*/
                       //console.log(arr_eurusd);
 
 
                       //the even index of array
-                      for (var i=1;i<valueArr.length;i+=2) {
+                      /*for (var i=1;i<valueArr.length;i+=2) {
                          //console.log(valueArr[i]);
                          //console.log(i);
                          arr_usdcad.push(valueArr[i]);
                          //console.log(arr_usdcad);
                          //data.addRow([timeArr[i], arr_usdcad[i]]);
-                      }
+                      }*/
                       //console.log(arr_usdcad);
-
-
-
-
 
 
                       //setTimeout(data.removeRow(0), 100);
                       //TODO remove the previous added rows
                       //look for the firstly added 5/10 rows
                       //removeRow of index
-                      for(var i=0; i<valueArr.length; i++) {
+                     /* for(var i=0; i<valueArr.length; i++) {
                         //console.log(valueArr[i]);
                         //console.log(valueArr[0]);
                         //num = i;
@@ -176,7 +224,7 @@ function init() {
                         //data.removeRow(i-1);
                         //TODO remove the previous added rows
                         //data.removeRow([timeArr[0], valueArr[0]])
-                      }
+                      }*/
 
 
                       //console.log(valueArr[1]);
@@ -202,8 +250,8 @@ function init() {
 
                       var options = {
                           title:" ",
-                          width: 600,
-                          height: 400,
+                          width: 960,
+                          height: 460,
                           bar: { groupWidth: "40%" },
                           legend: { position: "bottom" },
                           animation: {"startup": true},
@@ -237,20 +285,21 @@ function init() {
                           },
                       };
 
-                      var runOnce = google.visualization.events.addListener(chart, 'ready', function () {
+                      //stay in sockets
+                      /*var runOnce = google.visualization.events.addListener(chart, 'ready', function () {
                           google.visualization.events.removeListener(runOnce);
                           chart.draw(data, options);
                           chart_test.draw(data_test, options);
-                      });
+                      });*/
 
                       chart.draw(view, options);
                       chart_test.draw(view_test, options);
 
                       // you can handle the resizing here - no need to recreate your data and charts from scratch
-                      $(window).resize(function() {
+                      /*$(window).resize(function() {
                           chart.draw(data, options);
                           chart_test.draw(data_test, options);
-                      });
+                      });*/
 
                 }
                 google.load('visualization', '1', {packages: ['corechart'], callback: drawVisualization});
@@ -296,17 +345,22 @@ function reconnect() {
 	//quit();
 	init();
 }
+
+/*setTimeout(function() {
+   quit();
+   reconnect();
+}, 2000);*/
 </script>
 
 </head>
 <body onload="init()">
 
     <div id="visualization"></div>
-    <h3 id="ssi_values_eurusd"></h3>     <br><br><br>
+    EUR/USD<h3 id="ssi_values_eurusd"></h3>     <br>
 
 
     <div id="visualization_test"></div>
-    <h3 id="ssi_values_usdaud"></h3>
+    USD/AUD<h3 id="ssi_values_usdcad"></h3>
     <button onClick="quit()">Pause</button>
     <button onclick="reconnect()">Reconnect</button>
 
