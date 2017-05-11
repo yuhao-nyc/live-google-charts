@@ -6,18 +6,17 @@
 <script type="text/javascript" src="https://www.gstatic.com/charts/loader.js"></script>
 
 <script type="text/javascript">
-var portal = "wss://streamssi.fxcorporate.com/streamssi/endpoint/EURUSD,USDCAD"; // wss://streamssi.fxcorporate.com/streamssi/endpoint/EURUSD,USDCAD,GBPUSD,AUDUSD,NZDUSD,XAUUSD,GBPJPY,SPX500,USOil,UKOIL,GER30,USDJPY
+var portal = "wss://streamssi.fxcorporate.com/streamssi/endpoint/EURUSD"; // wss://streamssi.fxcorporate.com/streamssi/endpoint/EURUSD,USDCAD,GBPUSD,AUDUSD,NZDUSD,XAUUSD,GBPJPY,SPX500,USOil,UKOIL,GER30,USDJPY
 var socket;
 var valueArr = [];
 var timeArr = [];
-var longPercentArr = [];
-var shortPercentArr = [];
 
 //parsing the data
 function parseData(msg) {
 
             var json = '' + msg.data;
             json = json.replace('ssi', '');
+            //console.log(json);
             var objJSON = eval(json);
 
             $.each(objJSON.SSI, function (index, event) {
@@ -26,6 +25,7 @@ function parseData(msg) {
                     var pres = 10000;
                     var totalOrders = parseInt(event.LongAmountKOrders, 10) + parseInt(event.ShortAmountKOrders, 10);
                     var longPercent = parseInt(event.LongAmountKOrders) * 100 / totalOrders;
+                    //var longPercent = parseInt(longPercent.toFixed(0));
 
                     var longSSI = parseInt(event.LongAmountKOrders);
                     var shortSSI = parseInt(event.ShortAmountKOrders);
@@ -37,14 +37,11 @@ function parseData(msg) {
                     var s = padZeroWS(histOrders);
 
                     var floatVal = parseFloat(s);
-
-                    var fixedlongPercent = longPercent.toFixed(3);
-                    var fixedshortPercent = shortPercent.toFixed(3);
-
                     valueArr.push(floatVal);
                     timeArr.push(timeUpdateHour);
-                    longPercentArr.push(fixedlongPercent);
-                    shortPercentArr.push(fixedshortPercent);
+
+                    //console.log(valueArr);
+                    //console.log(timeArr);
 
         });
 
@@ -57,22 +54,25 @@ function parseData(msg) {
 
 }
 
-google.charts.load('current', {packages: ['corechart'], 'callback': drawChart});
+google.charts.load('current', {packages: ['corechart']});
 google.charts.setOnLoadCallback(drawChart);
 
 var data;
-var data_test;
 var chart;
-var chart_test;
 var options;
-
 drawChart();
 
+
+//Store all chart objects in a global array to avoid memory leak
 function drawChart() {
 
-            chart = new google.visualization.LineChart(document.getElementById('visualization'));
-            chart_test = new google.visualization.LineChart(document.getElementById('visualization_test'));
+            //event listener for interaction with chart
+            /*function selectHandler() {
+              chart.clearChart();
+            }
+            google.visualization.events.addListener(chart, 'ready', selectHandler);*/
 
+            chart = new google.visualization.LineChart(document.getElementById('visualization'));
             options = {
                 title:" ",
                 width: 960,
@@ -109,51 +109,39 @@ function drawChart() {
                   title: 'Time Stamp'
                 },
             };
-            // you can handle the resizing here - no need to recreate your data and charts from scratch
-            /*$(window).resize(function() {
-                chart.draw(data, options);
-                chart_test.draw(data_test, options);
-            });*/
 }
 
 function addData() {
 
+
             data = new google.visualization.DataTable();
+
             data.addColumn('string', 'Historical SSI');
             data.addColumn('number', 'EUR/USD SSI');
 
-            data_test = new google.visualization.DataTable();
-            data_test.addColumn('string', 'Historical SSI TEST');
-            data_test.addColumn('number', 'USD/CAD SSI');
+            for(var i=0; i<valueArr.length; i++) {
 
-            for(var i=0; i<valueArr.length; i+=2) {
-
-              if (i>=120) {
+              if (i>=60) {
                 data.removeRow(0);
-                valueArr.splice(0, 2);
-                timeArr.splice(0, 2);
-                longPercentArr.splice(0, 2);
-                shortPercentArr.splice(0, 2);
+                valueArr.shift();
+                timeArr.shift();
               }
 
               data.addRow([timeArr[i], valueArr[i]]);
-              $('#ssi_values_eurusd').html('EUR/USD SSI:' + valueArr[i] + '&nbsp;&nbsp;&nbsp;Long:' + longPercentArr[i] + '&nbsp;&nbsp;&nbsp;Short:' + shortPercentArr[i]);
-            }
-
-            for(var i=1; i<valueArr.length; i+=2) {
-                data_test.addRow([timeArr[i], valueArr[i]]);
-                $('#ssi_values_usdcad').html('USDCAD SSI:' + valueArr[i] + '&nbsp;&nbsp;&nbsp;Long:' + longPercentArr[i] + '&nbsp;&nbsp;&nbsp;Short:' + shortPercentArr[i]);
+              $('#ssi_values_eurusd').html(valueArr[i]);
             }
 
             //stay in sockets
             var runOnce = google.visualization.events.addListener(chart, 'ready', function () {
                 google.visualization.events.removeListener(runOnce);
                 chart.draw(data, options);
-                chart_test.draw(data_test, options);
             });
 
             chart.draw(data, options);
-            chart_test.draw(data_test, options);
+            // you can handle the resizing here - no need to recreate your data and charts from scratch
+            /*$(window).resize(function() {
+                chart.draw(data, options);
+            });*/
 }
 
 
@@ -192,18 +180,13 @@ function reconnect() {
 	//quit();
 	init();
 }
-
 </script>
 
 </head>
 <body onload="init()">
 
     <div id="visualization"></div>
-    <h3 id="ssi_values_eurusd"></h3>
-
-    <div id="visualization_test"></div>
-    <h3 id="ssi_values_usdcad"></h3>
-
+    EUR/USD<h3 id="ssi_values_eurusd"></h3>     <br>
 
     <button onClick="quit()">Pause</button>
     <button onclick="reconnect()">Reconnect</button>
