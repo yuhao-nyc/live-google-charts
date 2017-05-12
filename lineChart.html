@@ -101,19 +101,14 @@ function drawChart() {
                     gridlines: {
                       count: 8,
                       color: '#999'
-                    }
+                    },
                     /*minValue: 1.3,
                     maxValue: 1.4*/
                 },
                 hAxis: {
-                  title: 'Time Stamp'
+                  title: 'Time Stamp',
                 },
             };
-            // you can handle the resizing here - no need to recreate your data and charts from scratch
-            /*$(window).resize(function() {
-                chart.draw(data, options);
-                chart_test.draw(data_test, options);
-            });*/
 }
 
 function addData() {
@@ -123,34 +118,25 @@ function addData() {
             data.addColumn('number', 'EUR/USD SSI');
 
             data_test = new google.visualization.DataTable();
-            data_test.addColumn('string', 'Historical SSI TEST');
+            data_test.addColumn('string', 'Historical SSI');
             data_test.addColumn('number', 'USD/CAD SSI');
 
             for(var i=0; i<valueArr.length; i+=2) {
+                data.addRow([timeArr[i], valueArr[i]]);
 
-              if (i>=120) {
-                data.removeRow(0);
-                valueArr.splice(0, 2);
-                timeArr.splice(0, 2);
-                longPercentArr.splice(0, 2);
-                shortPercentArr.splice(0, 2);
-              }
-
-              data.addRow([timeArr[i], valueArr[i]]);
-              $('#ssi_values_eurusd').html('EUR/USD SSI:' + valueArr[i] + '&nbsp;&nbsp;&nbsp;Long:' + longPercentArr[i] + '&nbsp;&nbsp;&nbsp;Short:' + shortPercentArr[i]);
+                $('#ssi_values_eurusd').html('EUR/USD SSI:' + valueArr[i] + '&nbsp;&nbsp;&nbsp;Long:' + longPercentArr[i] + '%&nbsp;&nbsp;&nbsp;Short:' + shortPercentArr[i] + '%');
             }
 
             for(var i=1; i<valueArr.length; i+=2) {
                 data_test.addRow([timeArr[i], valueArr[i]]);
-                $('#ssi_values_usdcad').html('USDCAD SSI:' + valueArr[i] + '&nbsp;&nbsp;&nbsp;Long:' + longPercentArr[i] + '&nbsp;&nbsp;&nbsp;Short:' + shortPercentArr[i]);
-            }
 
-            //stay in sockets
-            var runOnce = google.visualization.events.addListener(chart, 'ready', function () {
-                google.visualization.events.removeListener(runOnce);
-                chart.draw(data, options);
-                chart_test.draw(data_test, options);
-            });
+                if (i >= 120) {
+                    data.removeRow(0);
+                    data_test.removeRow(0);
+                }
+
+                $('#ssi_values_usdcad').html('USDCAD SSI:' + valueArr[i] + '&nbsp;&nbsp;&nbsp;Long:' + longPercentArr[i] + '%&nbsp;&nbsp;&nbsp;Short:' + shortPercentArr[i] + '%');
+            }
 
             chart.draw(data, options);
             chart_test.draw(data_test, options);
