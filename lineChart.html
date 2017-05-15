@@ -6,12 +6,20 @@
 <script type="text/javascript" src="https://www.gstatic.com/charts/loader.js"></script>
 
 <script type="text/javascript">
-var portal = "wss://streamssi.fxcorporate.com/streamssi/endpoint/EURUSD,USDCAD"; // wss://streamssi.fxcorporate.com/streamssi/endpoint/EURUSD,USDCAD,GBPUSD,AUDUSD,NZDUSD,XAUUSD,GBPJPY,SPX500,USOil,UKOIL,GER30,USDJPY
-var socket;
-var valueArr = [];
-var timeArr = [];
-var longPercentArr = [];
-var shortPercentArr = [];
+var portal = "wss://streamssi.fxcorporate.com/streamssi/endpoint/EURUSD,GBPUSD,USDCAD", // wss://streamssi.fxcorporate.com/streamssi/endpoint/USOil,NZDUSD,SPX500,USDJPY,EURUSD,GER30,GBPUSD,AUDUSD,GBPJPY,XAUUSD,USDCAD,UKOIL
+    socket,
+    pairs_len = 3,
+    valueArr = [],
+    timeArr = [],
+    longPercentArr = [],
+    shortPercentArr = [],
+    data,
+    data_test,
+    data_test_test,
+    chart,
+    chart_test,
+    chart_test_test,
+    options;
 
 //parsing the data
 function parseData(msg) {
@@ -22,15 +30,14 @@ function parseData(msg) {
 
             $.each(objJSON.SSI, function (index, event) {
 
-                    var noSlashSymb = event.Symbol.replace('/', '').toUpperCase();
+                    //var noSlashSymb = event.Symbol.replace('/', '').toUpperCase();
+                    //var longSSI = parseInt(event.LongAmountKOrders);
+                    //var shortSSI = parseInt(event.ShortAmountKOrders);
+                    //var timeUpdate = event.Time;
                     var pres = 10000;
                     var totalOrders = parseInt(event.LongAmountKOrders, 10) + parseInt(event.ShortAmountKOrders, 10);
                     var longPercent = parseInt(event.LongAmountKOrders) * 100 / totalOrders;
-
-                    var longSSI = parseInt(event.LongAmountKOrders);
-                    var shortSSI = parseInt(event.ShortAmountKOrders);
-                    var timeUpdate = event.Time;
-                    var timeUpdateHour = timeUpdate.slice(11, 19);
+                    var timeUpdateHour = event.Time.slice(11, 19);
 
                     var shortPercent = 100.00 - longPercent;
                     var histOrders = Math.round(event.SSIHistOrders * pres) / pres;
@@ -60,18 +67,13 @@ function parseData(msg) {
 google.charts.load('current', {packages: ['corechart'], 'callback': drawChart});
 google.charts.setOnLoadCallback(drawChart);
 
-var data;
-var data_test;
-var chart;
-var chart_test;
-var options;
-
 drawChart();
 
 function drawChart() {
 
             chart = new google.visualization.LineChart(document.getElementById('visualization'));
             chart_test = new google.visualization.LineChart(document.getElementById('visualization_test'));
+            chart_test_test = new google.visualization.LineChart(document.getElementById('visualization_test_test'));
 
             options = {
                 title:" ",
@@ -121,18 +123,28 @@ function addData() {
             data_test.addColumn('string', 'Historical SSI');
             data_test.addColumn('number', 'USD/CAD SSI');
 
-            for(var i=0; i<valueArr.length; i+=2) {
+            data_test_test = new google.visualization.DataTable();
+            data_test_test.addColumn('string', 'Historical SSI');
+            data_test_test.addColumn('number', 'GBP/USD SSI');
+
+            for(var i = 0; i < valueArr.length; i += pairs_len) {
                 data.addRow([timeArr[i], valueArr[i]]);
 
                 $('#ssi_values_eurusd').html('EUR/USD SSI:' + valueArr[i] + '&nbsp;&nbsp;&nbsp;Long:' + longPercentArr[i] + '%&nbsp;&nbsp;&nbsp;Short:' + shortPercentArr[i] + '%');
             }
 
-            for(var i=1; i<valueArr.length; i+=2) {
+            for(var i = 1; i < valueArr.length; i += pairs_len) {
                 data_test.addRow([timeArr[i], valueArr[i]]);
+                $('#ssi_values_gbpusd').html('GBPUSD SSI:' + valueArr[i] + '&nbsp;&nbsp;&nbsp;Long:' + longPercentArr[i] + '%&nbsp;&nbsp;&nbsp;Short:' + shortPercentArr[i] + '%');
+            }
 
-                if (i >= 120) {
+            for(var i = 2; i < valueArr.length; i += pairs_len) {
+                data_test_test.addRow([timeArr[i], valueArr[i]]);
+
+                if ( i >= pairs_len * 60) {
                     data.removeRow(0);
                     data_test.removeRow(0);
+                    data_test_test.removeRow(0);
                 }
 
                 $('#ssi_values_usdcad').html('USDCAD SSI:' + valueArr[i] + '&nbsp;&nbsp;&nbsp;Long:' + longPercentArr[i] + '%&nbsp;&nbsp;&nbsp;Short:' + shortPercentArr[i] + '%');
@@ -140,6 +152,7 @@ function addData() {
 
             chart.draw(data, options);
             chart_test.draw(data_test, options);
+            chart_test_test.draw(data_test_test, options);
 }
 
 
@@ -157,11 +170,11 @@ function init() {
         };
 
         socket.onclose = function(msg) {
-            console.log("Disconnected - status "+this.readyState);
+            console.log("Disconnected - status: "+this.readyState);
         };
 	}
 	catch(ex){
-		console.log(ex);
+		console.log("Error: " + ex);
 	}
 
 }
@@ -178,7 +191,6 @@ function reconnect() {
 	//quit();
 	init();
 }
-
 </script>
 
 </head>
@@ -188,11 +200,13 @@ function reconnect() {
     <h3 id="ssi_values_eurusd"></h3>
 
     <div id="visualization_test"></div>
+    <h3 id="ssi_values_gbpusd"></h3>
+
+    <div id="visualization_test_test"></div>
     <h3 id="ssi_values_usdcad"></h3>
 
-
     <button onClick="quit()">Pause</button>
-    <button onclick="reconnect()">Reconnect</button>
+    <button onClick="reconnect()">Reconnect</button>
 
 </body>
 </html>
