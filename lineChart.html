@@ -1,198 +1,8 @@
 <html>
 <head>
-<title></title>
-
-<script type="text/javascript" src="https://ajax.googleapis.com/ajax/libs/jquery/1.11.1/jquery.min.js"></script>
-<script type="text/javascript" src="https://www.gstatic.com/charts/loader.js"></script>
-
-<script type="text/javascript">
-var portal = "wss://streamssi.fxcorporate.com/streamssi/endpoint/EURUSD,GBPUSD,USDCAD", // wss://streamssi.fxcorporate.com/streamssi/endpoint/USOil,NZDUSD,SPX500,USDJPY,EURUSD,GER30,GBPUSD,AUDUSD,GBPJPY,XAUUSD,USDCAD,UKOIL
-    socket,
-    pairs_len = 3,
-    valueArr = [],
-    timeArr = [],
-    longPercentArr = [],
-    shortPercentArr = [],
-    data,
-    data_test,
-    data_test_test,
-    chart,
-    chart_test,
-    chart_test_test,
-    options;
-
-//parsing the data
-function parseData(msg) {
-
-            var json = '' + msg.data;
-            json = json.replace('ssi', '');
-            var objJSON = eval(json);
-
-            $.each(objJSON.SSI, function (index, event) {
-
-                    //var noSlashSymb = event.Symbol.replace('/', '').toUpperCase();
-                    //var longSSI = parseInt(event.LongAmountKOrders);
-                    //var shortSSI = parseInt(event.ShortAmountKOrders);
-                    //var timeUpdate = event.Time;
-                    var pres = 10000;
-                    var totalOrders = parseInt(event.LongAmountKOrders, 10) + parseInt(event.ShortAmountKOrders, 10);
-                    var longPercent = parseInt(event.LongAmountKOrders) * 100 / totalOrders;
-                    var timeUpdateHour = event.Time.slice(11, 19);
-
-                    var shortPercent = 100.00 - longPercent;
-                    var histOrders = Math.round(event.SSIHistOrders * pres) / pres;
-                    var s = padZeroWS(histOrders);
-
-                    var floatVal = parseFloat(s);
-
-                    var fixedlongPercent = longPercent.toFixed(3);
-                    var fixedshortPercent = shortPercent.toFixed(3);
-
-                    valueArr.push(floatVal);
-                    timeArr.push(timeUpdateHour);
-                    longPercentArr.push(fixedlongPercent);
-                    shortPercentArr.push(fixedshortPercent);
-
-        });
-
-        function padZeroWS(histOrders) {
-            var s = Math.abs(histOrders) + "0000";
-            var i = s.indexOf('.');
-            var m = histOrders < 0 ? '-' : '';
-            return m + s.substr(0, i) + s.substr(i, i + 4);
-        }
-
-}
-
-google.charts.load('current', {packages: ['corechart'], 'callback': drawChart});
-google.charts.setOnLoadCallback(drawChart);
-
-drawChart();
-
-function drawChart() {
-
-            chart = new google.visualization.LineChart(document.getElementById('visualization'));
-            chart_test = new google.visualization.LineChart(document.getElementById('visualization_test'));
-            chart_test_test = new google.visualization.LineChart(document.getElementById('visualization_test_test'));
-
-            options = {
-                title:" ",
-                width: 960,
-                height: 460,
-                bar: { groupWidth: "40%" },
-                legend: { position: "bottom" },
-                animation: {"startup": true},
-                curveType: 'function',
-                lineWidth: 3,
-                backgroundColor: '#f9f9f9',
-                colors: ['red'],
-                tooltip: {
-                    textStyle: {
-                      color: 'red',
-                      italic: true
-                    },
-                    showColorCode: true
-                },
-                animation: {
-                    startup: true,
-                    easing: 'inAndOut',
-                    //duration: 500
-                },
-                vAxis: {
-                    title: '',
-                    gridlines: {
-                      count: 8,
-                      color: '#999'
-                    },
-                    /*minValue: 1.3,
-                    maxValue: 1.4*/
-                },
-                hAxis: {
-                  title: 'Time Stamp',
-                },
-            };
-}
-
-function addData() {
-
-            data = new google.visualization.DataTable();
-            data.addColumn('string', 'Historical SSI');
-            data.addColumn('number', 'EUR/USD SSI');
-
-            data_test = new google.visualization.DataTable();
-            data_test.addColumn('string', 'Historical SSI');
-            data_test.addColumn('number', 'USD/CAD SSI');
-
-            data_test_test = new google.visualization.DataTable();
-            data_test_test.addColumn('string', 'Historical SSI');
-            data_test_test.addColumn('number', 'GBP/USD SSI');
-
-            for(var i = 0; i < valueArr.length; i += pairs_len) {
-                data.addRow([timeArr[i], valueArr[i]]);
-
-                $('#ssi_values_eurusd').html('EUR/USD SSI:' + valueArr[i] + '&nbsp;&nbsp;&nbsp;Long:' + longPercentArr[i] + '%&nbsp;&nbsp;&nbsp;Short:' + shortPercentArr[i] + '%');
-            }
-
-            for(var i = 1; i < valueArr.length; i += pairs_len) {
-                data_test.addRow([timeArr[i], valueArr[i]]);
-                $('#ssi_values_gbpusd').html('GBPUSD SSI:' + valueArr[i] + '&nbsp;&nbsp;&nbsp;Long:' + longPercentArr[i] + '%&nbsp;&nbsp;&nbsp;Short:' + shortPercentArr[i] + '%');
-            }
-
-            for(var i = 2; i < valueArr.length; i += pairs_len) {
-                data_test_test.addRow([timeArr[i], valueArr[i]]);
-
-                if ( i >= pairs_len * 60) {
-                    data.removeRow(0);
-                    data_test.removeRow(0);
-                    data_test_test.removeRow(0);
-                }
-
-                $('#ssi_values_usdcad').html('USDCAD SSI:' + valueArr[i] + '&nbsp;&nbsp;&nbsp;Long:' + longPercentArr[i] + '%&nbsp;&nbsp;&nbsp;Short:' + shortPercentArr[i] + '%');
-            }
-
-            chart.draw(data, options);
-            chart_test.draw(data_test, options);
-            chart_test_test.draw(data_test_test, options);
-}
-
-
-function init() {
-	try {
-		socket = new WebSocket(portal);
-		    //console.log('WebSocket status '+socket.readyState);
-		socket.onopen = function(msg) {
-		    //console.log("Welcome - status "+this.readyState);
-		};
-
-		socket.onmessage = function(msg) {
-            parseData(msg);
-            addData();
-        };
-
-        socket.onclose = function(msg) {
-            console.log("Disconnected - status: "+this.readyState);
-        };
-	}
-	catch(ex){
-		console.log("Error: " + ex);
-	}
-
-}
-
-function quit() {
-	if (socket != null) {
-		console.log("Web Socket closed");
-		socket.close();
-		socket=null;
-	}
-}
-
-function reconnect() {
-	//quit();
-	init();
-}
-</script>
-
+      <title>Live Streaming Google Line Chart</title>
+      <script type="text/javascript" src="https://ajax.googleapis.com/ajax/libs/jquery/1.11.1/jquery.min.js"></script>
+      <script type="text/javascript" src="https://www.gstatic.com/charts/loader.js"></script>
 </head>
 <body onload="init()">
 
@@ -208,5 +18,193 @@ function reconnect() {
     <button onClick="quit()">Pause</button>
     <button onClick="reconnect()">Reconnect</button>
 
+
+<script type="text/javascript">
+    var portal = "wss://streamssi.fxcorporate.com/streamssi/endpoint/EURUSD,GBPUSD,USDCAD", // right order: wss://streamssi.fxcorporate.com/streamssi/endpoint/USOil,NZDUSD,SPX500,USDJPY,EURUSD,GER30,GBPUSD,AUDUSD,GBPJPY,XAUUSD,USDCAD,UKOIL
+        socket,
+        pairs_len = 3,
+        valueArr = [],
+        timeArr = [],
+        longPercentArr = [],
+        shortPercentArr = [],
+        data,
+        data_test,
+        data_test_test,
+        chart,
+        chart_test,
+        chart_test_test,
+        options;
+
+    //parsing the data
+    function parseData(msg) {
+
+                var json = '' + msg.data;
+                json = json.replace('ssi', '');
+                var objJSON = eval(json); //parse str to return an object
+
+                $.each(objJSON.SSI, function (index, event) {
+
+                        //var noSlashSymb = event.Symbol.replace('/', '').toUpperCase();
+                        //var longSSI = parseInt(event.LongAmountKOrders);
+                        //var shortSSI = parseInt(event.ShortAmountKOrders);
+                        //var timeUpdate = event.Time;
+                        var pres = 10000;
+                        var totalOrders = parseInt(event.LongAmountKOrders, 10) + parseInt(event.ShortAmountKOrders, 10);
+                        var longPercent = parseInt(event.LongAmountKOrders) * 100 / totalOrders;
+                        var timeUpdateHour = event.Time.slice(11, 19);
+
+                        var shortPercent = 100.00 - longPercent;
+                        var histOrders = Math.round(event.SSIHistOrders * pres) / pres;
+                        var s = padZeroWS(histOrders);
+
+                        var floatVal = parseFloat(s);
+
+                        var fixedlongPercent = longPercent.toFixed(3);
+                        var fixedshortPercent = shortPercent.toFixed(3);
+
+                        valueArr.push(floatVal);
+                        timeArr.push(timeUpdateHour);
+                        longPercentArr.push(fixedlongPercent);
+                        shortPercentArr.push(fixedshortPercent);
+
+            });
+
+            function padZeroWS(histOrders) {
+                var s = Math.abs(histOrders) + "0000";
+                var i = s.indexOf('.');
+                var m = histOrders < 0 ? '-' : '';
+                return m + s.substr(0, i) + s.substr(i, i + 4);
+            }
+
+    }
+
+    google.charts.load('current', {packages: ['corechart'], 'callback': drawChart});
+    google.charts.setOnLoadCallback(drawChart);
+
+    drawChart();
+
+    function drawChart() {
+
+                chart = new google.visualization.LineChart(document.getElementById('visualization'));
+                chart_test = new google.visualization.LineChart(document.getElementById('visualization_test'));
+                chart_test_test = new google.visualization.LineChart(document.getElementById('visualization_test_test'));
+
+                options = {
+                    title:" ",
+                    width: 960,
+                    height: 460,
+                    bar: { groupWidth: "40%" },
+                    legend: { position: "bottom" },
+                    animation: {"startup": true},
+                    curveType: 'function',
+                    lineWidth: 3,
+                    backgroundColor: '#f9f9f9',
+                    colors: ['red'],
+                    tooltip: {
+                        textStyle: {
+                          color: 'red',
+                          italic: true
+                        },
+                        showColorCode: true
+                    },
+                    animation: {
+                        startup: true,
+                        easing: 'inAndOut',
+                        //duration: 500
+                    },
+                    vAxis: {
+                        title: '',
+                        gridlines: {
+                          count: 8,
+                          color: '#999'
+                        },
+                        /*minValue: 1.3,
+                        maxValue: 1.4*/
+                    },
+                    hAxis: {
+                      title: 'Time Stamp',
+                    },
+                };
+    }
+
+    function addData() {
+
+                data = new google.visualization.DataTable();
+                data.addColumn('string', 'Historical SSI');
+                data.addColumn('number', 'EUR/USD SSI');
+
+                data_test = new google.visualization.DataTable();
+                data_test.addColumn('string', 'Historical SSI');
+                data_test.addColumn('number', 'GBP/USD SSI');
+
+                data_test_test = new google.visualization.DataTable();
+                data_test_test.addColumn('string', 'Historical SSI');
+                data_test_test.addColumn('number', 'USD/CAD SSI');
+
+                for(var i = 0; i < valueArr.length; i += pairs_len) {
+                    data.addRow([timeArr[i], valueArr[i]]);
+
+                    $('#ssi_values_eurusd').html('EUR/USD SSI:' + valueArr[i] + '&nbsp;&nbsp;&nbsp;Long:' + longPercentArr[i] + '%&nbsp;&nbsp;&nbsp;Short:' + shortPercentArr[i] + '%');
+                }
+
+                for(var i = 1; i < valueArr.length; i += pairs_len) {
+                    data_test.addRow([timeArr[i], valueArr[i]]);
+                    $('#ssi_values_gbpusd').html('GBPUSD SSI:' + valueArr[i] + '&nbsp;&nbsp;&nbsp;Long:' + longPercentArr[i] + '%&nbsp;&nbsp;&nbsp;Short:' + shortPercentArr[i] + '%');
+                }
+
+                for(var i = 2; i < valueArr.length; i += pairs_len) {
+                    data_test_test.addRow([timeArr[i], valueArr[i]]);
+
+                    if ( i >= pairs_len * 60) {
+                        data.removeRow(0);
+                        data_test.removeRow(0);
+                        data_test_test.removeRow(0);
+                    }
+
+                    $('#ssi_values_usdcad').html('USDCAD SSI:' + valueArr[i] + '&nbsp;&nbsp;&nbsp;Long:' + longPercentArr[i] + '%&nbsp;&nbsp;&nbsp;Short:' + shortPercentArr[i] + '%');
+                }
+
+                chart.draw(data, options);
+                chart_test.draw(data_test, options);
+                chart_test_test.draw(data_test_test, options);
+    }
+
+
+    function init() {
+    	try {
+    		socket = new WebSocket(portal);
+    		    //console.log('WebSocket status '+socket.readyState);
+    		socket.onopen = function(msg) {
+    		    //console.log("Welcome - status "+this.readyState);
+    		};
+
+    		socket.onmessage = function(msg) {
+                parseData(msg);
+                addData();
+            };
+
+            socket.onclose = function(msg) {
+                console.log("Disconnected - status: "+this.readyState);
+            };
+    	}
+    	catch(ex){
+    		console.log("Error: " + ex);
+    	}
+
+    }
+
+    function quit() {
+    	if (socket != null) {
+    		console.log("Web Socket closed");
+    		socket.close();
+    		socket=null;
+    	}
+    }
+
+    function reconnect() {
+    	//quit();
+    	init();
+    }
+</script>
 </body>
 </html>
