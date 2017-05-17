@@ -6,14 +6,14 @@
 </head>
 <body onload="init()">
 
-    <div id="visualization"></div>
-    <h3 id="ssi_values_eurusd"></h3>
+    <div id="visualization_EURUSD"></div>
+    <h3 id="ssi_values_EURUSD"></h3>
 
-    <div id="visualization_test"></div>
-    <h3 id="ssi_values_gbpusd"></h3>
+    <div id="visualization_GBPUSD"></div>
+    <h3 id="ssi_values_GBPUSD"></h3>
 
-    <div id="visualization_test_test"></div>
-    <h3 id="ssi_values_usdcad"></h3>
+    <div id="visualization_USDCAD"></div>
+    <h3 id="ssi_values_USDCAD"></h3>
 
     <button onClick="quit()">Pause</button>
     <button onClick="reconnect()">Reconnect</button>
@@ -27,12 +27,12 @@
         timeArr = [],
         longPercentArr = [],
         shortPercentArr = [],
-        data,
-        data_test,
-        data_test_test,
-        chart,
-        chart_test,
-        chart_test_test,
+        data_EURUSD,
+        data_GBPUSD,
+        data_USDCAD,
+        chart_EURUSD,
+        chart_GBPUSD,
+        chart_USDCAD,
         options;
 
     //parsing the data
@@ -85,9 +85,9 @@
 
     function drawChart() {
 
-                chart = new google.visualization.LineChart(document.getElementById('visualization'));
-                chart_test = new google.visualization.LineChart(document.getElementById('visualization_test'));
-                chart_test_test = new google.visualization.LineChart(document.getElementById('visualization_test_test'));
+                chart_EURUSD = new google.visualization.LineChart(document.getElementById('visualization_EURUSD'));
+                chart_GBPUSD = new google.visualization.LineChart(document.getElementById('visualization_GBPUSD'));
+                chart_USDCAD = new google.visualization.LineChart(document.getElementById('visualization_USDCAD'));
 
                 options = {
                     title:" ",
@@ -129,44 +129,44 @@
 
     function addData() {
 
-                data = new google.visualization.DataTable();
-                data.addColumn('string', 'Historical SSI');
-                data.addColumn('number', 'EUR/USD SSI');
+                data_EURUSD = new google.visualization.DataTable();
+                data_EURUSD.addColumn('string', 'Historical SSI');
+                data_EURUSD.addColumn('number', 'EURUSD SSI');
 
-                data_test = new google.visualization.DataTable();
-                data_test.addColumn('string', 'Historical SSI');
-                data_test.addColumn('number', 'GBP/USD SSI');
+                data_GBPUSD = new google.visualization.DataTable();
+                data_GBPUSD.addColumn('string', 'Historical SSI');
+                data_GBPUSD.addColumn('number', 'GBPUSD SSI');
 
-                data_test_test = new google.visualization.DataTable();
-                data_test_test.addColumn('string', 'Historical SSI');
-                data_test_test.addColumn('number', 'USD/CAD SSI');
+                data_USDCAD = new google.visualization.DataTable();
+                data_USDCAD.addColumn('string', 'Historical SSI');
+                data_USDCAD.addColumn('number', 'USDCAD SSI');
 
                 for(var i = 0; i < valueArr.length; i += pairs_len) {
-                    data.addRow([timeArr[i], valueArr[i]]);
+                    data_EURUSD.addRow([timeArr[i], valueArr[i]]);
 
-                    $('#ssi_values_eurusd').html('EUR/USD SSI:' + valueArr[i] + '&nbsp;&nbsp;&nbsp;Long:' + longPercentArr[i] + '%&nbsp;&nbsp;&nbsp;Short:' + shortPercentArr[i] + '%');
+                    $('#ssi_values_EURUSD').html('EURUSD SSI:' + valueArr[i] + '&nbsp;&nbsp;&nbsp;Long:' + longPercentArr[i] + '%&nbsp;&nbsp;&nbsp;Short:' + shortPercentArr[i] + '%');
                 }
 
                 for(var i = 1; i < valueArr.length; i += pairs_len) {
-                    data_test.addRow([timeArr[i], valueArr[i]]);
-                    $('#ssi_values_gbpusd').html('GBPUSD SSI:' + valueArr[i] + '&nbsp;&nbsp;&nbsp;Long:' + longPercentArr[i] + '%&nbsp;&nbsp;&nbsp;Short:' + shortPercentArr[i] + '%');
+                    data_GBPUSD.addRow([timeArr[i], valueArr[i]]);
+                    $('#ssi_values_GBPUSD').html('GBPUSD SSI:' + valueArr[i] + '&nbsp;&nbsp;&nbsp;Long:' + longPercentArr[i] + '%&nbsp;&nbsp;&nbsp;Short:' + shortPercentArr[i] + '%');
                 }
 
                 for(var i = 2; i < valueArr.length; i += pairs_len) {
-                    data_test_test.addRow([timeArr[i], valueArr[i]]);
+                    data_USDCAD.addRow([timeArr[i], valueArr[i]]);
 
                     if ( i >= pairs_len * 60) {
-                        data.removeRow(0);
-                        data_test.removeRow(0);
-                        data_test_test.removeRow(0);
+                        data_EURUSD.removeRow(0);
+                        data_GBPUSD.removeRow(0);
+                        data_USDCAD.removeRow(0);
                     }
 
-                    $('#ssi_values_usdcad').html('USDCAD SSI:' + valueArr[i] + '&nbsp;&nbsp;&nbsp;Long:' + longPercentArr[i] + '%&nbsp;&nbsp;&nbsp;Short:' + shortPercentArr[i] + '%');
+                    $('#ssi_values_USDCAD').html('USDCAD SSI:' + valueArr[i] + '&nbsp;&nbsp;&nbsp;Long:' + longPercentArr[i] + '%&nbsp;&nbsp;&nbsp;Short:' + shortPercentArr[i] + '%');
                 }
 
-                chart.draw(data, options);
-                chart_test.draw(data_test, options);
-                chart_test_test.draw(data_test_test, options);
+                chart_EURUSD.draw(data_EURUSD, options);
+                chart_GBPUSD.draw(data_GBPUSD, options);
+                chart_USDCAD.draw(data_USDCAD, options);
     }
 
 
