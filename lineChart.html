@@ -5,16 +5,20 @@
       <script type="text/javascript" src="https://www.gstatic.com/charts/loader.js"></script>
 </head>
 <body onload="init()">
-
-    <div id="visualization_EURUSD"></div>
-    <h3 id="ssi_values_EURUSD"></h3>
-
-    <div id="visualization_GBPUSD"></div>
-    <h3 id="ssi_values_GBPUSD"></h3>
-
-    <div id="visualization_USDCAD"></div>
-    <h3 id="ssi_values_USDCAD"></h3>
-
+    <div>
+      <div style="width: 33%; display: inline-block;">
+        <div id="visualization_EURUSD"></div>
+        <h3 id="ssi_values_EURUSD"></h3>
+      </div>
+      <div style="width: 33%; display: inline-block;">
+        <div id="visualization_GBPUSD"></div>
+        <h3 id="ssi_values_GBPUSD"></h3>
+      </div>
+      <div style="width: 33%; display: inline-block;">
+        <div id="visualization_USDCAD"></div>
+        <h3 id="ssi_values_USDCAD"></h3>
+      </div>
+    </div>
     <button onClick="quit()">Pause</button>
     <button onClick="reconnect()">Reconnect</button>
 
@@ -91,7 +95,7 @@
 
                 options = {
                     title:" ",
-                    width: 960,
+                    width: 440,
                     height: 460,
                     bar: { groupWidth: "40%" },
                     legend: { position: "bottom" },
